@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Garden Planner</title>
+<style>
+  body{font-family:system-ui,"Noto Sans Thai",sans-serif;margin:0;background:#f4f7f1;color:#1e2a1e}
+  header{background:#2f5d34;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+  header h1{font-size:18px;margin:0}
+  button{font:inherit;border:0;border-radius:8px;padding:8px 12px;background:#2f5d34;color:#fff;cursor:pointer}
+  button.ghost{background:#e3ebdc;color:#2f5d34}
+  button.lang{background:#fff;color:#2f5d34;padding:6px 10px}
+  nav{display:flex;gap:6px;padding:10px 16px;background:#fff;position:sticky;top:0;z-index:2;box-shadow:0 1px 2px #0002}
+  nav button{flex:1}
+  main{padding:12px 16px 40px;max-width:640px;margin:auto}
+  h2{font-size:16px;margin:18px 0 4px;color:#2f5d34}
+  .card{background:#fff;border-radius:12px;padding:12px 14px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;box-shadow:0 1px 2px #0002}
+  .tag{font-size:12px;background:#e3ebdc;border-radius:6px;padding:2px 6px;margin-left:6px;color:#2f5d34}
+  input,textarea{width:100%;box-sizing:border-box;font:inherit;padding:8px;border-radius:8px;border:1px solid #bbb;margin:6px 0}
+  .muted{color:#667;font-size:13px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  .timing{display:grid;grid-template-columns:70px repeat(12,1fr);gap:2px;align-items:center;font-size:11px;margin:4px 0}
+  .timing .cell{height:14px;border-radius:3px;background:#eee}
+  .timing .hd{text-align:center;color:#667}
+  .modal{position:fixed;inset:0;background:#0007;display:flex;align-items:flex-end;justify-content:center;z-index:5}
+  .sheet{background:#fff;width:100%;max-width:640px;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px;box-sizing:border-box}
+  .photo{height:180px;border-radius:12px;background:#dfe6d8;display:flex;align-items:center;justify-content:center;color:#667;font-size:14px;margin-bottom:10px}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .hidden{display:none}
+  .thumb{width:44px;height:44px;flex:none;margin-right:10px}
+  .thumb svg,.photo svg{width:100%;height:100%}
+  .photo{height:160px}
+  .photo svg{width:130px;height:130px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <button class="lang" id="langBtn" onclick="toggleLang()"></button>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()"></div>
+
+<script>
+// ---------- Text (English is the default; Thai labels to be checked) ----------
+const UI = {
+  en: {
+    title:'Garden Planner', month:'This month', library:'Library', garden:'My garden',
+    search:'Search plants…', add:'+ Add to my garden', remove:'Remove from my garden',
+    inGarden:'✓ In my garden', noPhoto:'Photo to be added', polytunnel:'Polytunnel',
+    emptyMonth:'Nothing to do this month for these plants yet.',
+    emptyGarden:'Your garden is empty. Add plants from the Library.',
+    backup:'Backup & restore', copy:'Show backup to copy', restore:'Restore from backup', restoreBtn:'Restore',
+    restoreFail:'That backup could not be read.',
+    close:'Close', timing:'Timing (Edinburgh)',
+    footer:'Timings are approximate for Edinburgh. Check before planting.'
+  },
+  th: {
+    title:'ผู้วางแผนสวน', month:'เดือนนี้', library:'รายการพืช', garden:'สวนของฉัน',
+    search:'ค้นหาพืช…', add:'+ เพิ่มในสวนของฉัน', remove:'ลบออกจากสวนของฉัน',
+    inGarden:'✓ อยู่ในสวนของฉัน', noPhoto:'รอเพิ่มรูปภาพ', polytunnel:'โรงเรือน',
+    emptyMonth:'ยังไม่มีงานของพืชเหล่านี้ในเดือนนี้',
+    emptyGarden:'ยังไม่มีพืชในสวน เพิ่มได้จากรายการพืช',
+    backup:'สำรองและกู้คืนข้อมูล', copy:'แสดงข้อมูลสำรองเพื่อคัดลอก', restore:'กู้คืนจากข้อมูลสำรอง', restoreBtn:'กู้คืน',
+    restoreFail:'ไม่สามารถอ่านข้อมูลสำรองนี้ได้',
+    close:'ปิด', timing:'ช่วงเวลา (เอดินบะระ)',
+    footer:'ช่วงเวลาเป็นค่าโดยประมาณสำหรับเอดินบะระ ควรตรวจสอบก่อนปลูก'
+  }
+};
+const MONTHS = {
+  en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  th:['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
+};
+const MONTH_FULL = {
+  en:['January','February','March','April','May','June','July','August','September','October','November','December'],
+  th:['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+};
+const TASK = {
+  sow:    {en:'Sow',     th:'เพาะ',       c:'#e8b84a'},
+  plant:  {en:'Plant',   th:'ปลูก',       c:'#7fb36a'},
+  prune:  {en:'Prune',   th:'ตัดแต่ง',    c:'#b58ad9'},
+  harvest:{en:'Harvest', th:'เก็บเกี่ยว', c:'#e0644f'}
+};
+const GROUP = {
+  herb:  {en:'Herb',         th:'สมุนไพร'},
+  veg:   {en:'Vegetable',    th:'ผัก'},
+  fruit: {en:'Fruit tree',   th:'ไม้ผล'},
+  flower:{en:'Flowering shrub', th:'ไม้ดอก'}
+};
+
+// ---------- Plant library. tasks: [type, fromMonth, toMonth] (1 = Jan; wraps past Dec) ----------
+// Photo: add later as photo:'https://…' (use a licensed image) and credit:'…'
+const PLANTS = [
+  {id:'basil',    name:{en:'Basil',th:'โหระพา'},            group:'herb',  poly:true,  tasks:[['sow',3,4],['plant',6,6],['harvest',7,10]]},
+  {id:'parsley',  name:{en:'Parsley',th:'ผักชีฝรั่ง'},        group:'herb',  tasks:[['sow',3,6],['harvest',5,11]]},
+  {id:'coriander',name:{en:'Coriander',th:'ผักชี'},          group:'herb',  tasks:[['sow',4,7],['harvest',6,9]]},
+  {id:'mint',     name:{en:'Mint',th:'สะระแหน่'},            group:'herb',  tasks:[['plant',3,4],['harvest',6,10]]},
+  {id:'thyme',    name:{en:'Thyme',th:'ไทม์'},               group:'herb',  tasks:[['plant',4,6],['harvest',6,10]]},
+  {id:'rosemary', name:{en:'Rosemary',th:'โรสแมรี'},         group:'herb',  tasks:[['plant',4,6],['harvest',6,10]]},
+
+  {id:'cabbage',  name:{en:'Cabbage',th:'กะหล่ำปลี'},         group:'veg',   tasks:[['sow',3,5],['plant',5,6],['harvest',7,3]]},
+  {id:'sprouts',  name:{en:'Brussels sprouts',th:'กะหล่ำดาว'},  group:'veg',   tasks:[['sow',3,4],['plant',5,6],['harvest',10,2]]},
+  {id:'kale',     name:{en:'Kale',th:'คะน้าใบหยิก'},          group:'veg',   tasks:[['sow',4,6],['plant',6,7],['harvest',10,3]]},
+  {id:'aubergine',name:{en:'Aubergine',th:'มะเขือยาว'},        group:'veg',   poly:true, tasks:[['sow',2,3],['plant',6,6],['harvest',7,10]]},
+  {id:'chard',    name:{en:'Chard',th:'ผักชาร์ด'},            group:'veg',   poly:true, tasks:[['sow',4,7],['harvest',6,11]]},
+  {id:'tomato',   name:{en:'Tomato',th:'มะเขือเทศ'},           group:'veg',   poly:true, tasks:[['sow',2,3],['plant',5,6],['harvest',7,10]]},
+  {id:'potato',   name:{en:'Potato',th:'มันฝรั่ง'},            group:'veg',   tasks:[['plant',3,5],['harvest',6,9]]},
+  {id:'carrot',   name:{en:'Carrot',th:'แครอท'},               group:'veg',   tasks:[['sow',3,7],['harvest',6,11]]},
+  {id:'lettuce',  name:{en:'Lettuce',th:'ผักกาดหอม'},           group:'veg',   tasks:[['sow',3,8],['harvest',5,10]]},
+  {id:'spinach',  name:{en:'Spinach',th:'ผักโขม'},              group:'veg',   tasks:[['sow',3,9],['harvest',4,11]]},
+  {id:'onion',    name:{en:'Onion',th:'หัวหอม'},              group:'veg',   tasks:[['plant',3,4],['harvest',8,9]]},
+  {id:'garlic',   name:{en:'Garlic',th:'กระเทียม'},            group:'veg',   tasks:[['plant',10,11],['harvest',6,7]]},
+  {id:'leek',     name:{en:'Leek',th:'หอมลีก'},               group:'veg',   tasks:[['sow',2,4],['plant',6,7],['harvest',10,3]]},
+  {id:'courgette',name:{en:'Courgette',th:'ซูกินี'},            group:'veg',   tasks:[['sow',4,5],['plant',6,6],['harvest',7,10]]},
+  {id:'runner',   name:{en:'Runner bean',th:'ถั่วรันเนอร์'},      group:'veg',   tasks:[['sow',4,5],['plant',6,6],['harvest',7,9]]},
+  {id:'peas',     name:{en:'Peas',th:'ถั่วลันเตา'},            group:'veg',   tasks:[['sow',3,6],['harvest',6,8]]},
+
+  {id:'apple',    name:{en:'Apple tree',th:'ต้นแอปเปิ้ล'},       group:'fruit', tasks:[['plant',11,3],['prune',12,3],['harvest',8,10]]},
+  {id:'plum',     name:{en:'Plum tree',th:'ต้นพลัม'},           group:'fruit', tasks:[['plant',11,3],['prune',7,8],['harvest',8,9]]},
+
+  {id:'hydrangea',name:{en:'Hydrangea',th:'ไฮเดรนเยีย'},        group:'flower',tasks:[['plant',10,4],['prune',3,4]]}
+];
+
+// ---------- Simple line sketches (no photos needed) ----------
+const s = inner => `<svg viewBox="0 0 100 100" fill="none" stroke="#2f5d34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const ICONS = {
+  basil: s(`<path d="M50 92V40"/><ellipse cx="38" cy="50" rx="13" ry="7" fill="#7fb36a" transform="rotate(-30 38 50)"/><ellipse cx="62" cy="40" rx="13" ry="7" fill="#7fb36a" transform="rotate(30 62 40)"/><ellipse cx="38" cy="30" rx="11" ry="6" fill="#7fb36a" transform="rotate(-30 38 30)"/><ellipse cx="62" cy="22" rx="11" ry="6" fill="#7fb36a" transform="rotate(30 62 22)"/>`),
+  parsley: s(`<path d="M50 92V50"/><path d="M50 50 C30 50 24 38 30 28 C38 34 44 36 50 40 C56 36 62 34 70 28 C76 38 70 50 50 50Z" fill="#7fb36a"/><path d="M50 62 C36 62 30 72 34 80 C42 76 46 72 50 70 C54 72 58 76 66 80 C70 72 64 62 50 62Z" fill="#7fb36a"/>`),
+  coriander: s(`<path d="M50 92V20"/><path d="M50 60 Q40 50 30 54 Q38 62 50 60"/><path d="M50 60 Q60 50 70 54 Q62 62 50 60"/><path d="M50 40 Q40 30 32 34 Q40 42 50 40"/><path d="M50 40 Q60 30 68 34 Q60 42 50 40"/>`),
+  mint: s(`<path d="M50 92V30"/><path d="M50 70 L32 60 L44 52 Z" fill="#7fb36a"/><path d="M50 70 L68 60 L56 52 Z" fill="#7fb36a"/><path d="M50 50 L34 40 L44 34 Z" fill="#7fb36a"/><path d="M50 50 L66 40 L56 34 Z" fill="#7fb36a"/><path d="M50 30 L44 20 L56 20 Z" fill="#7fb36a"/>`),
+  thyme: s(`<path d="M30 90 Q40 60 50 40"/><path d="M50 40 Q70 30 72 14"/><path d="M50 40 Q40 22 26 22"/><path d="M42 62 Q28 58 24 46"/><path d="M42 62 Q56 58 60 46"/><path d="M60 80 Q72 72 78 60"/>`),
+  rosemary: s(`<path d="M50 94 Q50 40 50 6"/><path d="M50 80 l-14 -6"/><path d="M50 80 l14 -6"/><path d="M50 62 l-14 -6"/><path d="M50 62 l14 -6"/><path d="M50 44 l-14 -6"/><path d="M50 44 l14 -6"/><path d="M50 26 l-12 -6"/><path d="M50 26 l12 -6"/>`),
+  cabbage: s(`<circle cx="50" cy="50" r="30" fill="#9cc98a"/><path d="M50 22 Q40 50 50 78"/><path d="M50 22 Q60 50 50 78"/><path d="M26 50 Q50 40 74 50"/>`),
+  sprouts: s(`<path d="M50 94V10"/><circle cx="42" cy="78" r="8" fill="#9cc98a"/><circle cx="58" cy="64" r="8" fill="#9cc98a"/><circle cx="42" cy="50" r="8" fill="#9cc98a"/><circle cx="58" cy="36" r="8" fill="#9cc98a"/>`),
+  kale: s(`<path d="M50 94V46"/><path d="M50 50 C30 50 18 40 16 22 C30 18 38 24 44 26 C40 16 46 8 54 6 C58 22 66 26 74 20 C78 36 70 50 50 50Z" fill="#6aa36a"/>`),
+  aubergine: s(`<path d="M50 30 C70 40 74 80 62 92 C54 98 40 94 38 84 C34 70 36 40 50 30Z" fill="#6a4c93"/><path d="M40 30 Q50 22 60 30 Q50 34 40 30Z" fill="#7fb36a"/><path d="M50 22 L50 8"/>`),
+  chard: s(`<path d="M34 94 V46" stroke="#e05a4f"/><path d="M50 94 V40" stroke="#f0c040"/><path d="M66 94 V50" stroke="#e05a4f"/><path d="M34 46 C20 46 14 30 18 20 C30 24 36 34 34 46Z" fill="#6aa36a"/><path d="M50 40 C34 40 30 22 36 12 C52 18 56 30 50 40Z" fill="#6aa36a"/><path d="M66 50 C78 50 84 36 80 26 C68 30 62 40 66 50Z" fill="#6aa36a"/>`),
+  tomato: s(`<circle cx="50" cy="56" r="30" fill="#e0644f"/><path d="M34 34 L50 40 L66 34 L58 30 L50 36 L42 30Z" fill="#6aa36a"/><path d="M50 26 Q50 16 56 12"/>`),
+  potato: s(`<ellipse cx="50" cy="56" rx="32" ry="22" fill="#c9a06a" transform="rotate(-15 50 56)"/><circle cx="40" cy="52" r="2" fill="#7a5a30"/><circle cx="58" cy="60" r="2" fill="#7a5a30"/><circle cx="50" cy="48" r="2" fill="#7a5a30"/>`),
+  carrot: s(`<path d="M40 40 L60 40 L50 94 Z" fill="#f0883c"/><path d="M50 40 Q44 24 36 14"/><path d="M50 40 Q50 24 50 12"/><path d="M50 40 Q56 24 64 14"/><path d="M44 52 l6 2 M52 60 l6 -2"/>`),
+  lettuce: s(`<path d="M50 90 C20 80 14 56 22 40 C34 46 40 50 50 50 C60 50 66 46 78 40 C86 56 80 80 50 90Z" fill="#9cc98a"/><path d="M50 90 V50"/><path d="M50 50 C38 40 34 30 36 22"/><path d="M50 50 C62 40 66 30 64 22"/>`),
+  spinach: s(`<path d="M50 94 V40"/><path d="M50 56 C34 56 26 46 28 30 C42 32 50 40 50 56Z" fill="#6aa36a"/><path d="M50 46 C66 46 74 36 72 20 C58 22 50 30 50 46Z" fill="#6aa36a"/>`),
+  onion: s(`<path d="M50 20 Q44 8 40 4"/><path d="M50 20 Q56 8 62 4"/><path d="M50 20 C74 30 80 60 66 80 C60 90 40 90 34 80 C20 60 26 30 50 20Z" fill="#e8c27a"/><path d="M50 22 Q44 60 50 88" stroke-width="2"/>`),
+  garlic: s(`<path d="M50 26 Q46 14 50 6"/><path d="M50 30 C74 36 78 66 64 82 C58 90 42 90 36 82 C22 66 26 36 50 30Z" fill="#f4f0e4"/><path d="M50 36 Q40 60 50 86"/><path d="M50 36 Q60 60 50 86"/>`),
+  leek: s(`<path d="M42 94 V30 Q42 14 46 8"/><path d="M58 94 V30 Q58 14 54 8"/><rect x="36" y="30" width="28" height="60" rx="6" fill="#f4f0e4"/><path d="M36 60 H64"/>`),
+  courgette: s(`<path d="M30 60 Q50 40 74 62 Q80 76 66 84 Q44 84 30 60Z" fill="#4f8f4f"/><path d="M68 62 L82 52"/><path d="M76 46 Q82 40 90 44 Q86 52 76 46Z" fill="#f4c542"/>`),
+  runner: s(`<path d="M30 20 Q14 50 34 86 Q44 96 50 80" fill="#7fb36a"/><path d="M60 14 Q46 46 62 74 Q70 88 80 80" fill="#7fb36a"/>`),
+  peas: s(`<path d="M18 60 Q50 40 82 60 Q50 82 18 60Z" fill="#9cc98a"/><circle cx="36" cy="58" r="5" fill="#4f8f4f"/><circle cx="50" cy="60" r="5" fill="#4f8f4f"/><circle cx="64" cy="58" r="5" fill="#4f8f4f"/>`),
+  apple: s(`<path d="M50 96 V60"/><path d="M44 96 H56"/><circle cx="50" cy="40" r="30" fill="#9cc98a"/><circle cx="36" cy="36" r="6" fill="#e0443f"/><circle cx="60" cy="48" r="6" fill="#e0443f"/><circle cx="52" cy="26" r="5" fill="#e0443f"/>`),
+  plum: s(`<path d="M50 96 V60"/><path d="M44 96 H56"/><circle cx="50" cy="40" r="30" fill="#8fbf7a"/><circle cx="36" cy="36" r="6" fill="#6a4c93"/><circle cx="60" cy="48" r="6" fill="#6a4c93"/><circle cx="52" cy="26" r="5" fill="#6a4c93"/>`),
+  hydrangea: s(`<path d="M50 96 V56"/><path d="M50 70 Q40 66 36 56"/><circle cx="36" cy="30" r="9" fill="#c8a0e0"/><circle cx="54" cy="24" r="9" fill="#c8a0e0"/><circle cx="68" cy="40" r="9" fill="#c8a0e0"/><circle cx="46" cy="42" r="9" fill="#c8a0e0"/><circle cx="60" cy="58" r="8" fill="#c8a0e0"/>`)
+};
+
+// ---------- State ----------
+const state = {
+  lang: localStorage.getItem('gp_lang') || 'en',
+  tab: 'month',
+  q: '',
+  garden: JSON.parse(localStorage.getItem('gp_garden') || '[]'),
+  showBackup: false
+};
+const $ = id => document.getElementById(id);
+const U = () => UI[state.lang];
+const plantById = id => PLANTS.find(p => p.id === id);
+const inRange = (m, from, to) => from <= to ? (m >= from && m <= to) : (m >= from || m <= to);
+const saveGarden = () => localStorage.setItem('gp_garden', JSON.stringify(state.garden));
+
+// ---------- Actions ----------
+function toggleLang(){
+  state.lang = state.lang === 'en' ? 'th' : 'en';
+  localStorage.setItem('gp_lang', state.lang);
+  render();
+}
+function setTab(t){ state.tab = t; state.showBackup = false; render(); }
+function setQ(v){ state.q = v; renderMain(); }
+function toggleGarden(id){
+  const i = state.garden.indexOf(id);
+  i >= 0 ? state.garden.splice(i,1) : state.garden.push(id);
+  saveGarden();
+  render();
+  if ($('modal').classList.contains('hidden') === false) openPlant(id);
+}
+function openPlant(id){
+  const p = plantById(id), L = state.lang, u = U();
+  const rows = p.tasks.map(([t,f,to]) => `
+    <div class="timing">
+      <span>${TASK[t][L]}</span>
+      ${[...Array(12)].map((_,i)=>{
+        const m=i+1, on=inRange(m,f,to);
+        return `<span class="cell" style="${on?'background:'+TASK[t].c:''}" title="${MONTHS[L][i]}"></span>`;
+      }).join('')}
+    </div>`).join('');
+  const header = `<div class="timing"><span></span>${MONTHS[L].map(m=>`<span class="hd">${m[0]}</span>`).join('')}</div>`;
+  const legend = p.tasks.map(([t])=>`<span class="dot" style="background:${TASK[t].c}"></span>${TASK[t][L]}`).join(' &nbsp; ');
+  const inG = state.garden.includes(id);
+  $('modal').innerHTML = `
+    <div class="sheet">
+      <div class="photo">${ICONS[id]||''}</div>
+      <h2 style="font-size:20px;margin:0">${p.name[L]}</h2>
+      <div class="muted">${GROUP[p.group][L]}${p.poly?`<span class="tag">${u.polytunnel}</span>`:''}</div>
+      <h2>${u.timing}</h2>
+      ${header}${rows}
+      <div class="muted" style="margin-top:8px">${legend}</div>
+      <div class="actions">
+        <button class="${inG?'ghost':''}" onclick="toggleGarden('${id}')">${inG?u.remove:u.add}</button>
+        <button class="ghost" onclick="closeModal()">${u.close}</button>
+      </div>
+    </div>`;
+  $('modal').classList.remove('hidden');
+}
+function closeModal(){ $('modal').classList.add('hidden'); }
+
+function restoreBackup(){
+  try{
+    const ids = JSON.parse($('restoreBox').value);
+    if(!Array.isArray(ids)) throw 0;
+    state.garden = ids.filter(id => plantById(id));
+    saveGarden(); render();
+  }catch(e){ alert(U().restoreFail); }
+}
+
+// ---------- Rendering ----------
+function render(){
+  const u = U();
+  document.documentElement.lang = state.lang;
+  $('title').textContent = u.title;
+  $('langBtn').textContent = state.lang === 'en' ? 'ไทย' : 'EN';
+  $('nav').innerHTML = ['month','library','garden'].map(t =>
+    `<button class="${state.tab===t?'':'ghost'}" onclick="setTab('${t}')">${u[t]}</button>`).join('');
+  renderMain();
+}
+
+function plantRow(p){
+  const L = state.lang;
+  return `<div class="card" onclick="openPlant('${p.id}')">
+    <span class="thumb">${ICONS[p.id]||''}</span>
+    <div style="flex:1"><strong>${p.name[L]}</strong>${p.poly?`<span class="tag">${U().polytunnel}</span>`:''}
+      <div class="muted">${GROUP[p.group][L]}</div></div>
+    <span class="muted">›</span></div>`;
+}
+
+function renderMain(){
+  const u = U(), L = state.lang, m = new Date().getMonth() + 1;
+  let html = '';
+
+  if(state.tab === 'month'){
+    html += `<h2>${MONTH_FULL[L][m-1]}</h2>`;
+    let any = false;
+    for(const t of ['sow','plant','prune','harvest']){
+      const list = PLANTS.filter(p => p.tasks.some(([tt,f,to]) => tt===t && inRange(m,f,to)));
+      if(!list.length) continue;
+      any = true;
+      html += `<h2><span class="dot" style="background:${TASK[t].c}"></span>${TASK[t][L]}</h2>`;
+      html += list.map(plantRow).join('');
+    }
+    if(!any) html += `<p class="muted">${u.emptyMonth}</p>`;
+  }
+
+  if(state.tab === 'library'){
+    html += `<input placeholder="${u.search}" value="${state.q}" oninput="setQ(this.value)">`;
+    const q = state.q.trim().toLowerCase();
+    const list = PLANTS.filter(p => !q || p.name.en.toLowerCase().includes(q) || p.name.th.includes(q));
+    html += list.map(plantRow).join('') || `<p class="muted">—</p>`;
+  }
+
+  if(state.tab === 'garden'){
+    const list = state.garden.map(plantById).filter(Boolean);
+    html += list.length ? list.map(plantRow).join('') : `<p class="muted">${u.emptyGarden}</p>`;
+    html += `<h2>${u.backup}</h2>`;
+    html += `<button class="ghost" onclick="state.showBackup=!state.showBackup;renderMain()">${u.copy}</button>`;
+    if(state.showBackup){
+      html += `<textarea rows="3" readonly onclick="this.select()">${JSON.stringify(state.garden)}</textarea>`;
+    }
+    html += `<textarea id="restoreBox" rows="2" placeholder="[&quot;basil&quot;,&quot;apple&quot;]"></textarea>
+             <button class="ghost" onclick="restoreBackup()">${u.restoreBtn}</button>`;
+  }
+
+  html += `<p class="muted" style="margin-top:24px">${u.footer}</p>`;
+  $('main').innerHTML = html;
+}
+
+render();
+</script>
+</body>
+</html>
