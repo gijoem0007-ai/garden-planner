@@ -48,7 +48,8 @@
 // ---------- Text (English is the default; Thai labels to be checked) ----------
 const UI = {
   en: {
-    title:'Garden Planner', month:'This month', library:'Library', garden:'My garden',
+    title:'Garden Planner', library:'Library', garden:'My garden', myPlants:'My plants',
+    showAll:'Show all plants for this month', showMine:'Show only my plants',
     search:'Search plants…', add:'+ Add to my garden', remove:'Remove from my garden',
     inGarden:'✓ In my garden', noPhoto:'Photo to be added', polytunnel:'Polytunnel',
     emptyMonth:'Nothing to do this month for these plants yet.',
@@ -59,7 +60,8 @@ const UI = {
     footer:'Timings are approximate for Edinburgh. Check before planting.'
   },
   th: {
-    title:'ผู้วางแผนสวน', month:'เดือนนี้', library:'รายการพืช', garden:'สวนของฉัน',
+    title:'ผู้วางแผนสวน', library:'รายการพืช', garden:'สวนของฉัน', myPlants:'พืชของฉัน',
+    showAll:'แสดงพืชทั้งหมดของเดือนนี้', showMine:'แสดงเฉพาะพืชของฉัน',
     search:'ค้นหาพืช…', add:'+ เพิ่มในสวนของฉัน', remove:'ลบออกจากสวนของฉัน',
     inGarden:'✓ อยู่ในสวนของฉัน', noPhoto:'รอเพิ่มรูปภาพ', polytunnel:'โรงเรือน',
     emptyMonth:'ยังไม่มีงานของพืชเหล่านี้ในเดือนนี้',
@@ -157,10 +159,11 @@ const ICONS = {
 // ---------- State ----------
 const state = {
   lang: localStorage.getItem('gp_lang') || 'en',
-  tab: 'month',
+  tab: 'garden',
   q: '',
   garden: JSON.parse(localStorage.getItem('gp_garden') || '[]'),
-  showBackup: false
+  showBackup: false,
+  showAll: false
 };
 const $ = id => document.getElementById(id);
 const U = () => UI[state.lang];
@@ -228,7 +231,7 @@ function render(){
   document.documentElement.lang = state.lang;
   $('title').textContent = u.title;
   $('langBtn').textContent = state.lang === 'en' ? 'ไทย' : 'EN';
-  $('nav').innerHTML = ['month','library','garden'].map(t =>
+  $('nav').innerHTML = ['garden','library'].map(t =>
     `<button class="${state.tab===t?'':'ghost'}" onclick="setTab('${t}')">${u[t]}</button>`).join('');
   renderMain();
 }
@@ -242,22 +245,22 @@ function plantRow(p){
     <span class="muted">›</span></div>`;
 }
 
+// Jobs due in month m for the given plants, grouped by task. Returns '' if none.
+function monthJobs(list, m){
+  const L = state.lang;
+  let html = '';
+  for(const t of ['sow','plant','prune','harvest']){
+    const items = list.filter(p => p.tasks.some(([tt,f,to]) => tt===t && inRange(m,f,to)));
+    if(!items.length) continue;
+    html += `<h2><span class="dot" style="background:${TASK[t].c}"></span>${TASK[t][L]}</h2>`;
+    html += items.map(plantRow).join('');
+  }
+  return html;
+}
+
 function renderMain(){
   const u = U(), L = state.lang, m = new Date().getMonth() + 1;
   let html = '';
-
-  if(state.tab === 'month'){
-    html += `<h2>${MONTH_FULL[L][m-1]}</h2>`;
-    let any = false;
-    for(const t of ['sow','plant','prune','harvest']){
-      const list = PLANTS.filter(p => p.tasks.some(([tt,f,to]) => tt===t && inRange(m,f,to)));
-      if(!list.length) continue;
-      any = true;
-      html += `<h2><span class="dot" style="background:${TASK[t].c}"></span>${TASK[t][L]}</h2>`;
-      html += list.map(plantRow).join('');
-    }
-    if(!any) html += `<p class="muted">${u.emptyMonth}</p>`;
-  }
 
   if(state.tab === 'library'){
     html += `<input placeholder="${u.search}" value="${state.q}" oninput="setQ(this.value)">`;
@@ -267,8 +270,16 @@ function renderMain(){
   }
 
   if(state.tab === 'garden'){
-    const list = state.garden.map(plantById).filter(Boolean);
-    html += list.length ? list.map(plantRow).join('') : `<p class="muted">${u.emptyGarden}</p>`;
+    const mine = state.garden.map(plantById).filter(Boolean);
+    const showingAll = state.showAll || !mine.length;
+    html += `<h2>${MONTH_FULL[L][m-1]}</h2>`;
+    html += monthJobs(showingAll ? PLANTS : mine, m) || `<p class="muted">${u.emptyMonth}</p>`;
+    if(mine.length){
+      html += `<button class="ghost" onclick="state.showAll=!state.showAll;renderMain()">${showingAll ? u.showMine : u.showAll}</button>`;
+      html += `<h2>${u.myPlants}</h2>` + mine.map(plantRow).join('');
+    } else {
+      html += `<p class="muted">${u.emptyGarden}</p>`;
+    }
     html += `<h2>${u.backup}</h2>`;
     html += `<button class="ghost" onclick="state.showBackup=!state.showBackup;renderMain()">${u.copy}</button>`;
     if(state.showBackup){
