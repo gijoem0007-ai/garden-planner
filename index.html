@@ -38,7 +38,7 @@
 <body>
 <header>
   <h1 id="title"></h1>
-  <button class="lang" id="langBtn" onclick="toggleLang()"></button>
+  <div style="display:flex;gap:8px"><button class="lang" onclick="openHelp()" id="helpBtn">?</button><button class="lang" id="langBtn" onclick="toggleLang()"></button></div>
 </header>
 <nav id="nav"></nav>
 <main id="main"></main>
@@ -55,6 +55,15 @@ const UI = {
     emptyMonth:'Nothing to do this month for these plants yet.',
     emptyGarden:'Your garden is empty. Add plants from the Library.',
     close:'Close', timing:'Timing (Edinburgh)',
+    help:'?', helpTitle:'Help',
+    helpLines:[
+      'Welcome to your personalised garden planner.',
+      'My garden shows what to do this month for the plants in your garden, with your list of plants below.',
+      'If you want to add more things to your own garden, go into the Library, tap the plant, then tap "Add to my garden". It will be done automatically.',
+      'To take a plant out, open it and tap "Remove from my garden".',
+      'Your garden is saved on this device and in this browser only, so use the same device and browser each time.',
+      'Timings are approximate for Edinburgh. Check before planting.'
+    ],
     footer:'Timings are approximate for Edinburgh. Check before planting.'
   },
   th: {
@@ -65,6 +74,15 @@ const UI = {
     emptyMonth:'ยังไม่มีงานของพืชเหล่านี้ในเดือนนี้',
     emptyGarden:'ยังไม่มีพืชในสวน เพิ่มได้จากรายการพืช',
     close:'ปิด', timing:'ช่วงเวลา (เอดินบะระ)',
+    help:'?', helpTitle:'ความช่วยเหลือ',
+    helpLines:[
+      'ยินดีต้อนรับสู่ผู้วางแผนสวนของคุณ',
+      'สวนของฉันแสดงงานที่ควรทำในเดือนนี้สำหรับพืชในสวนของคุณ และรายการพืชของคุณอยู่ด้านล่าง',
+      'หากต้องการเพิ่มพืชในสวนของคุณ ให้เข้าไปที่รายการพืช แตะที่พืชที่ต้องการ แล้วแตะ "เพิ่มในสวนของฉัน" ระบบจะเพิ่มให้โดยอัตโนมัติ',
+      'หากต้องการเอาพืชออก ให้เปิดพืชนั้นแล้วแตะ "ลบออกจากสวนของฉัน"',
+      'สวนของคุณถูกบันทึกไว้ในอุปกรณ์และเบราว์เซอร์นี้เท่านั้น ควรใช้อุปกรณ์และเบราว์เซอร์เดิมทุกครั้ง',
+      'ช่วงเวลาเป็นค่าโดยประมาณสำหรับเอดินบะระ ควรตรวจสอบก่อนปลูก'
+    ],
     footer:'ช่วงเวลาเป็นค่าโดยประมาณสำหรับเอดินบะระ ควรตรวจสอบก่อนปลูก'
   }
 };
@@ -209,6 +227,17 @@ function openPlant(id){
   $('modal').classList.remove('hidden');
 }
 function closeModal(){ $('modal').classList.add('hidden'); }
+
+function openHelp(){
+  const u = U();
+  $('modal').innerHTML = `
+    <div class="sheet">
+      <h2 style="font-size:20px;margin:0">${u.helpTitle}</h2>
+      ${u.helpLines.map(l => `<p>${l}</p>`).join('')}
+      <div class="actions"><button class="ghost" onclick="closeModal()">${u.close}</button></div>
+    </div>`;
+  $('modal').classList.remove('hidden');
+}
 
 
 // ---------- Rendering ----------
