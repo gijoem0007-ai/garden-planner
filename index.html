@@ -140,6 +140,20 @@ const PLANTS = [
   {id:'hydrangea',name:{en:'Hydrangea',th:'ไฮเดรนเยีย'},        group:'flower',tasks:[['plant',10,4],['prune',3,4]]}
 ];
 
+// ---------- Notes and grow tips (trial: 5 plants). note = why it's good; tip = how to grow it ----------
+const TIPS = {
+  carrot:{note:{en:'Carrots are rich in beta-carotene, which the body turns into vitamin A.', th:'แครอทมีเบตาแคโรทีนสูง ร่างกายนำไปเปลี่ยนเป็นวิตามินเอ'},
+          tip:{en:'Cover with fine insect mesh to keep carrot fly off.', th:'คลุมด้วยตาข่ายละเอียดเพื่อป้องกันแมลงวันแครอท'}},
+  spinach:{note:{en:'Spinach is a good source of iron and folate.', th:'ผักโขมมีธาตุเหล็กและโฟเลตสูง'},
+          tip:{en:'Pick the outer leaves and the plant keeps producing.', th:'เด็ดใบด้านนอกไปเรื่อย ๆ ต้นจะให้ใบใหม่ต่อเนื่อง'}},
+  basil:{note:{en:'Basil adds lots of flavour without needing much salt.', th:'ใบโหระพาช่วยเพิ่มรสชาติโดยไม่ต้องใช้เกลือมาก'},
+          tip:{en:'Pinch out the tips regularly to keep the plant bushy.', th:'เด็ดยอดบ่อย ๆ เพื่อให้ต้นพุ่มและแตกใบดก'}},
+  apple:{note:{en:'Apples give you fibre, especially in the skin, and some vitamin C.', th:'แอปเปิ้ลมีใยอาหาร โดยเฉพาะในเปลือก และมีวิตามินซีเล็กน้อย'},
+          tip:{en:'Prune in winter, from November to March, while the tree is dormant.', th:'ตัดแต่งในฤดูหนาว (พ.ย.–มี.ค.) ขณะต้นพักตัว'}},
+  garlic:{note:{en:'Garlic gives big flavour for very few calories.', th:'กระเทียมให้กลิ่นและรสชาติเข้มข้นด้วยแคลอรีต่ำ'},
+          tip:{en:'Plant the cloves pointed end up, in autumn.', th:'ปลูกกลีบโดยให้ปลายแหลมชี้ขึ้น ปลูกในฤดูใบไม้ร่วง'}}
+};
+
 // ---------- Simple line sketches (no photos needed) ----------
 const s = inner => `<svg viewBox="0 0 100 100" fill="none" stroke="#2f5d34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
 const ICONS = {
@@ -216,6 +230,7 @@ function openPlant(id){
       <div class="photo">${ICONS[id]||''}</div>
       <h2 style="font-size:20px;margin:0">${p.name[L]}</h2>
       <div class="muted">${GROUP[p.group][L]}${p.poly?`<span class="tag">${u.polytunnel}</span>`:''}</div>
+      ${TIPS[id] ? `<p style="margin:10px 0 4px">${TIPS[id].note[L]}</p><p class="muted" style="margin:0 0 6px">💡 ${TIPS[id].tip[L]}</p>` : ''}
       <h2>${u.timing}</h2>
       ${header}${rows}
       <div class="muted" style="margin-top:8px">${legend}</div>
