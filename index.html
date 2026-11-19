@@ -60,9 +60,20 @@ const UI = {
       'Welcome to your personalised garden planner.',
       'My garden shows what to do this month for the plants in your garden, with your list of plants below.',
       'If you want to add more things to your own garden, go into the Library, tap the plant, then tap "Add to my garden". It will be done automatically.',
-      'To take a plant out, open it and tap "Remove from my garden".',
-      'Your garden is saved on this device and in this browser only, so use the same device and browser each time.',
-      'Timings are approximate for Edinburgh. Check before planting.'
+      'To take a plant out, open it and tap "Remove from my garden".'
+    ],
+    helpVitTitle:'What the vitamins and minerals do',
+    helpGloss:[
+      ['Vitamin A','supports normal vision, especially in dim light, and healthy skin and immunity.'],
+      ['Vitamin B group','helps the body release energy from food. Folate (B9) helps make healthy red blood cells.'],
+      ['Vitamin C','supports the immune system and helps the body absorb iron from plant foods.'],
+      ['Vitamin K','helps blood clot normally and supports healthy bones.'],
+      ['Iron','carries oxygen in the blood.'],
+      ['Fibre','keeps digestion regular and helps you feel full.'],
+      ['Potassium','helps muscles and nerves work normally and supports healthy blood pressure.'],
+      ['Magnesium','helps muscles and nerves work normally.'],
+      ['Protein','helps build and repair body tissue.'],
+      ['Lycopene','a red plant pigment found in tomatoes.']
     ],
     footer:'Timings are approximate for Edinburgh. Check before planting.'
   },
@@ -80,8 +91,19 @@ const UI = {
       'สวนของฉันแสดงงานที่ควรทำในเดือนนี้สำหรับพืชในสวนของคุณ และรายการพืชของคุณอยู่ด้านล่าง',
       'หากต้องการเพิ่มพืชในสวนของคุณ ให้เข้าไปที่รายการพืช แตะที่พืชที่ต้องการ แล้วแตะ "เพิ่มในสวนของฉัน" ระบบจะเพิ่มให้โดยอัตโนมัติ',
       'หากต้องการเอาพืชออก ให้เปิดพืชนั้นแล้วแตะ "ลบออกจากสวนของฉัน"',
-      'สวนของคุณถูกบันทึกไว้ในอุปกรณ์และเบราว์เซอร์นี้เท่านั้น ควรใช้อุปกรณ์และเบราว์เซอร์เดิมทุกครั้ง',
-      'ช่วงเวลาเป็นค่าโดยประมาณสำหรับเอดินบะระ ควรตรวจสอบก่อนปลูก'
+    ],
+    helpVitTitle:'วิตามินและแร่ธาตุช่วยอะไรได้บ้าง',
+    helpGloss:[
+      ['วิตามินเอ','ช่วยให้การมองเห็นปกติ โดยเฉพาะในที่แสงน้อย และช่วยให้ผิวและระบบภูมิคุ้มกันแข็งแรง'],
+      ['วิตามินบีรวม','ช่วยให้ร่างกายดึงพลังงานจากอาหาร โฟเลต (บี9) ช่วยสร้างเม็ดเลือดแดงที่แข็งแรง'],
+      ['วิตามินซี','ช่วยให้ระบบภูมิคุ้มกันทำงานปกติ และช่วยดูดซึมธาตุเหล็กจากอาหารจากพืช'],
+      ['วิตามินเค','ช่วยให้เลือดแข็งตัวตามปกติ และช่วยให้กระดูกแข็งแรง'],
+      ['ธาตุเหล็ก','ช่วยพาออกซิเจนไปกับเลือด'],
+      ['ใยอาหาร','ช่วยให้การขับถ่ายเป็นปกติ และช่วยให้รู้สึกอิ่ม'],
+      ['โพแทสเซียม','ช่วยให้กล้ามเนื้อและเส้นประสาททำงานปกติ และช่วยรักษาความดันเลือดให้ปกติ'],
+      ['แมกนีเซียม','ช่วยให้กล้ามเนื้อและเส้นประสาททำงานปกติ'],
+      ['โปรตีน','ช่วยสร้างและซ่อมแซมเนื้อเยื่อของร่างกาย'],
+      ['ไลโคปีน','สารสีแดงจากพืช พบในมะเขือเทศ']
     ],
     footer:'ช่วงเวลาเป็นค่าโดยประมาณสำหรับเอดินบะระ ควรตรวจสอบก่อนปลูก'
   }
@@ -151,7 +173,47 @@ const TIPS = {
   apple:{note:{en:'Apples give you fibre, especially in the skin, and some vitamin C.', th:'แอปเปิ้ลมีใยอาหาร โดยเฉพาะในเปลือก และมีวิตามินซีเล็กน้อย'},
           tip:{en:'Prune in winter, from November to March, while the tree is dormant.', th:'ตัดแต่งในฤดูหนาว (พ.ย.–มี.ค.) ขณะต้นพักตัว'}},
   garlic:{note:{en:'Garlic gives big flavour for very few calories.', th:'กระเทียมให้กลิ่นและรสชาติเข้มข้นด้วยแคลอรีต่ำ'},
-          tip:{en:'Plant the cloves pointed end up, in autumn.', th:'ปลูกกลีบโดยให้ปลายแหลมชี้ขึ้น ปลูกในฤดูใบไม้ร่วง'}}
+          tip:{en:'Plant the cloves pointed end up, in autumn.', th:'ปลูกกลีบโดยให้ปลายแหลมชี้ขึ้น ปลูกในฤดูใบไม้ร่วง'}},
+  parsley:{note:{en:'Parsley is rich in vitamin C and vitamin K.', th:'ผักชีฝรั่งมีวิตามินซีและวิตามินเคสูง'},
+          tip:{en:'Cut the outer stems at the base and new ones will keep coming.', th:'ตัดก้านด้านนอกที่โคนต้น แล้วก้านใหม่จะขึ้นมาเรื่อย ๆ'}},
+  coriander:{note:{en:'Coriander leaves provide vitamin C and vitamin K.', th:'ใบผักชีมีวิตามินซีและวิตามินเค'},
+          tip:{en:'Sow every few weeks, as it runs to seed quickly in summer heat.', th:'หว่านทุก 2–3 สัปดาห์ เพราะออกดอกและเป็นเมล็ดเร็วในอากาศร้อน'}},
+  mint:{note:{en:'Mint adds fresh flavour with very few calories.', th:'สะระแหน่ให้กลิ่นสดชื่นและมีแคลอรีต่ำมาก'},
+          tip:{en:'Grow it in a pot, as it spreads quickly in the ground.', th:'ปลูกในกระถาง เพราะจะลามเร็วเมื่อปลูกลงดิน'}},
+  thyme:{note:{en:'Thyme is a source of vitamin C and adds flavour without much salt.', th:'ไทม์มีวิตามินซี และช่วยเพิ่มรสชาติโดยไม่ต้องใช้เกลือมาก'},
+          tip:{en:'Plant in full sun, in free-draining soil.', th:'ปลูกในที่มีแดดจัดและดินระบายน้ำดี'}},
+  rosemary:{note:{en:'Rosemary adds flavour with very few calories.', th:'โรสแมรีให้กลิ่นและรสชาติโดยมีแคลอรีต่ำมาก'},
+          tip:{en:'Give it free-draining soil, as wet roots are its biggest problem.', th:'ปลูกในดินที่ระบายน้ำดี เพราะรากที่แฉะเป็นปัญหาใหญ่ที่สุดของโรสแมรี'}},
+  cabbage:{note:{en:'Cabbage is a good source of vitamin C and vitamin K, and provides fibre.', th:'กะหล่ำปลีมีวิตามินซีและวิตามินเคสูง และมีใยอาหาร'},
+          tip:{en:'Cover young plants with netting to keep pigeons and caterpillars off.', th:'คลุมต้นอ่อนด้วยตาข่ายเพื่อป้องกันนกพิราบและหนอนผีเสื้อ'}},
+  sprouts:{note:{en:'Brussels sprouts provide vitamin C, vitamin K and fibre.', th:'กะหล่ำดาวมีวิตามินซี วิตามินเค และใยอาหาร'},
+          tip:{en:'Firm the soil around planted sprouts so they do not rock in the wind.', th:'กดดินรอบต้นให้แน่น เพื่อไม่ให้โยกเมื่อลมพัด'}},
+  kale:{note:{en:'Kale is a good source of vitamin K, vitamin C and vitamin A.', th:'คะน้าใบหยิกมีวิตามินเค วิตามินซี และวิตามินเอสูง'},
+          tip:{en:'Pick the outer leaves and the plant keeps producing, even into winter.', th:'เด็ดใบด้านนอกไปเรื่อย ๆ ต้นจะให้ผลผลิตต่อเนื่องแม้ถึงฤดูหนาว'}},
+  aubergine:{note:{en:'Aubergines contain fibre and potassium.', th:'มะเขือยาวมีใยอาหารและโพแทสเซียม'},
+          tip:{en:'Give it a warm, sunny spot, such as a greenhouse or polytunnel.', th:'ปลูกในที่อบอุ่นและมีแดดจัด เช่น โรงเรือนหรือเรือนกระจก'}},
+  chard:{note:{en:'Chard provides vitamin K, vitamin A and magnesium.', th:'ผักชาร์ดมีวิตามินเค วิตามินเอ และแมกนีเซียม'},
+          tip:{en:'Cut the outer leaves and leave the middle to keep growing.', th:'เด็ดใบด้านนอกและปล่อยใบตรงกลางไว้ให้เติบโตต่อ'}},
+  tomato:{note:{en:'Tomatoes provide vitamin C, and red ones contain lycopene.', th:'มะเขือเทศมีวิตามินซี และมะเขือเทศสีแดงมีไลโคปีน'},
+          tip:{en:'Water regularly to help prevent split fruit.', th:'รดน้ำสม่ำเสมอเพื่อป้องกันผลแตก'}},
+  potato:{note:{en:'Potatoes provide potassium and vitamin C. Keep the skin on for extra fibre.', th:'มันฝรั่งมีโพแทสเซียมและวิตามินซี ปอกเปลือกออกน้อยเพื่อได้ใยอาหารเพิ่ม'},
+          tip:{en:'Earth up the stems as they grow, to keep the potatoes covered from light.', th:'พูนดินโคนต้นเมื่อต้นโต เพื่อให้หัวมันอยู่ใต้ดินและไม่โดนแสง'}},
+  lettuce:{note:{en:'Dark green lettuce leaves provide vitamin K and folate.', th:'ใบผักกาดหอมสีเขียวเข้มมีวิตามินเคและโฟเลต'},
+          tip:{en:'Sow a little and often for a steady supply.', th:'หว่านทีละน้อยแต่บ่อย ๆ เพื่อให้มีผลผลิตต่อเนื่อง'}},
+  onion:{note:{en:'Onions add flavour with few calories and provide some vitamin C.', th:'หัวหอมให้รสชาติโดยมีแคลอรีต่ำ และมีวิตามินซีอยู่บ้าง'},
+          tip:{en:'Stop watering in late summer as the bulbs swell, so they store well.', th:'หยุดรดน้ำปลายฤดูร้อนเมื่อหัวหอมกำลังโต เพื่อให้เก็บได้นาน'}},
+  leek:{note:{en:'Leeks provide vitamin K and vitamin C, with a gentle flavour.', th:'ต้นหอมลีกมีวิตามินเคและวิตามินซี รสชาติอ่อนโยน'},
+          tip:{en:'Plant out in deep holes so you get long white stems.', th:'ปลูกลงหลุมลึกเพื่อให้ได้ลำต้นสีขาวยาว'}},
+  courgette:{note:{en:'Courgettes provide vitamin C and potassium, and are low in calories.', th:'แตงกวาซูกินีมีวิตามินซีและโพแทสเซียม และแคลอรีต่ำ'},
+          tip:{en:'Pick courgettes small and often, as they grow quickly.', th:'เก็บผลตอนยังเล็กและบ่อย ๆ เพราะผลโตเร็วมาก'}},
+  runner:{note:{en:'Runner beans provide fibre, folate and vitamin C.', th:'ถั่วรันเนอร์มีใยอาหาร โฟเลต และวิตามินซี'},
+          tip:{en:'Pick pods regularly to keep the plant producing.', th:'เก็บฝักบ่อย ๆ เพื่อให้ต้นให้ผลผลิตต่อเนื่อง'}},
+  peas:{note:{en:'Peas provide fibre, protein and vitamin C.', th:'ถั่วลันเตามีใยอาหาร โปรตีน และวิตามินซี'},
+          tip:{en:'Pick pods while they are young and sweet.', th:'เก็บฝักตอนยังอ่อนและหวาน'}},
+  plum:{note:{en:'Plums provide vitamin C and fibre.', th:'ลูกพลัมมีวิตามินซีและใยอาหาร'},
+          tip:{en:'Prune in spring or summer, not winter, to reduce the risk of silver leaf disease.', th:'ตัดแต่งในฤดูใบไม้ผลิหรือฤดูร้อน ไม่ใช่ฤดูหนาว เพื่อลดความเสี่ยงโรคใบเงิน'}},
+  hydrangea:{note:{en:'Grown for its big flower heads, which can be dried for indoor arrangements.', th:'ปลูกเพื่อชมดอกที่ใหญ่สวยงาม ดอกแห้งนำไปจัดแจกันได้'},
+          tip:{en:'Light pruning in spring keeps the flowers coming.', th:'ตัดแต่งเบา ๆ ในฤดูใบไม้ผลิ เพื่อให้มีดอกต่อเนื่อง'}}
 };
 
 // ---------- Simple line sketches (no photos needed) ----------
@@ -249,6 +311,9 @@ function openHelp(){
     <div class="sheet">
       <h2 style="font-size:20px;margin:0">${u.helpTitle}</h2>
       ${u.helpLines.map(l => `<p>${l}</p>`).join('')}
+      <hr style="border:0;border-top:1px dashed #bbb;margin:16px 0">
+      <h2 style="font-size:16px;margin:0 0 6px">${u.helpVitTitle}</h2>
+      ${u.helpGloss.map(([n,t]) => `<p><strong>${n}</strong>: ${t}</p>`).join('')}
       <div class="actions"><button class="ghost" onclick="closeModal()">${u.close}</button></div>
     </div>`;
   $('modal').classList.remove('hidden');
