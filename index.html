@@ -49,25 +49,21 @@
 const UI = {
   en: {
     title:'Garden Planner', library:'Library', garden:'My garden', myPlants:'My plants',
-    showAll:'Show all plants for this month', showMine:'Show only my plants',
+    thingsTo:'Things to do in',
     search:'Search plants…', add:'+ Add to my garden', remove:'Remove from my garden',
     inGarden:'✓ In my garden', noPhoto:'Photo to be added', polytunnel:'Polytunnel',
     emptyMonth:'Nothing to do this month for these plants yet.',
     emptyGarden:'Your garden is empty. Add plants from the Library.',
-    backup:'Backup & restore', copy:'Show backup to copy', restore:'Restore from backup', restoreBtn:'Restore',
-    restoreFail:'That backup could not be read.',
     close:'Close', timing:'Timing (Edinburgh)',
     footer:'Timings are approximate for Edinburgh. Check before planting.'
   },
   th: {
     title:'ผู้วางแผนสวน', library:'รายการพืช', garden:'สวนของฉัน', myPlants:'พืชของฉัน',
-    showAll:'แสดงพืชทั้งหมดของเดือนนี้', showMine:'แสดงเฉพาะพืชของฉัน',
+    thingsTo:'งานที่ควรทำในเดือน',
     search:'ค้นหาพืช…', add:'+ เพิ่มในสวนของฉัน', remove:'ลบออกจากสวนของฉัน',
     inGarden:'✓ อยู่ในสวนของฉัน', noPhoto:'รอเพิ่มรูปภาพ', polytunnel:'โรงเรือน',
     emptyMonth:'ยังไม่มีงานของพืชเหล่านี้ในเดือนนี้',
     emptyGarden:'ยังไม่มีพืชในสวน เพิ่มได้จากรายการพืช',
-    backup:'สำรองและกู้คืนข้อมูล', copy:'แสดงข้อมูลสำรองเพื่อคัดลอก', restore:'กู้คืนจากข้อมูลสำรอง', restoreBtn:'กู้คืน',
-    restoreFail:'ไม่สามารถอ่านข้อมูลสำรองนี้ได้',
     close:'ปิด', timing:'ช่วงเวลา (เอดินบะระ)',
     footer:'ช่วงเวลาเป็นค่าโดยประมาณสำหรับเอดินบะระ ควรตรวจสอบก่อนปลูก'
   }
@@ -161,9 +157,7 @@ const state = {
   lang: localStorage.getItem('gp_lang') || 'en',
   tab: 'garden',
   q: '',
-  garden: JSON.parse(localStorage.getItem('gp_garden') || '[]'),
-  showBackup: false,
-  showAll: false
+  garden: JSON.parse(localStorage.getItem('gp_garden') || '[]')
 };
 const $ = id => document.getElementById(id);
 const U = () => UI[state.lang];
@@ -177,7 +171,7 @@ function toggleLang(){
   localStorage.setItem('gp_lang', state.lang);
   render();
 }
-function setTab(t){ state.tab = t; state.showBackup = false; render(); }
+function setTab(t){ state.tab = t; render(); }
 function setQ(v){ state.q = v; renderMain(); }
 function toggleGarden(id){
   const i = state.garden.indexOf(id);
@@ -216,14 +210,6 @@ function openPlant(id){
 }
 function closeModal(){ $('modal').classList.add('hidden'); }
 
-function restoreBackup(){
-  try{
-    const ids = JSON.parse($('restoreBox').value);
-    if(!Array.isArray(ids)) throw 0;
-    state.garden = ids.filter(id => plantById(id));
-    saveGarden(); render();
-  }catch(e){ alert(U().restoreFail); }
-}
 
 // ---------- Rendering ----------
 function render(){
@@ -271,22 +257,13 @@ function renderMain(){
 
   if(state.tab === 'garden'){
     const mine = state.garden.map(plantById).filter(Boolean);
-    const showingAll = state.showAll || !mine.length;
-    html += `<h2>${MONTH_FULL[L][m-1]}</h2>`;
-    html += monthJobs(showingAll ? PLANTS : mine, m) || `<p class="muted">${u.emptyMonth}</p>`;
-    if(mine.length){
-      html += `<button class="ghost" onclick="state.showAll=!state.showAll;renderMain()">${showingAll ? u.showMine : u.showAll}</button>`;
-      html += `<h2>${u.myPlants}</h2>` + mine.map(plantRow).join('');
-    } else {
+    if(!mine.length){
       html += `<p class="muted">${u.emptyGarden}</p>`;
+    } else {
+      html += `<h2>${u.thingsTo} ${MONTH_FULL[L][m-1]}</h2>`;
+      html += monthJobs(mine, m) || `<p class="muted">${u.emptyMonth}</p>`;
+      html += `<h2>${u.myPlants}</h2>` + mine.map(plantRow).join('');
     }
-    html += `<h2>${u.backup}</h2>`;
-    html += `<button class="ghost" onclick="state.showBackup=!state.showBackup;renderMain()">${u.copy}</button>`;
-    if(state.showBackup){
-      html += `<textarea rows="3" readonly onclick="this.select()">${JSON.stringify(state.garden)}</textarea>`;
-    }
-    html += `<textarea id="restoreBox" rows="2" placeholder="[&quot;basil&quot;,&quot;apple&quot;]"></textarea>
-             <button class="ghost" onclick="restoreBackup()">${u.restoreBtn}</button>`;
   }
 
   html += `<p class="muted" style="margin-top:24px">${u.footer}</p>`;
